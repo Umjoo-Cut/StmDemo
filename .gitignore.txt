@@ -1,0 +1,18 @@
+# Build artifacts
+Debug/
+Release/
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+*.d
+*.su
+
+# Toolchain / IDE specifics (Eclipse / STM32CubeIDE)
+.settings/
+*.launch
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
