@@ -162,7 +162,7 @@ uint8_t Measure_MQ3_With_Pressure(void) {
         uint32_t wait_start = HAL_GetTick();
 
         while (HAL_GetTick() - wait_start < MQ3_SAMPLE_INTERVAL) {
-            // ⭐ 압력 해제되면 즉시 중단!
+            // 압력 해제되면 즉시 중단!
             if (!Is_Pressure_Active()) {
                 mq3_value = max_delta;   // 지금까지 값 저장
                 return 2;
@@ -336,11 +336,11 @@ int main(void)
 	            UART_Send(msg_buf);
 
 	            if (result == 2) {
-	                // ⭐ 측정 중 압력 해제 → IDLE 복귀 (완전 초기화!)
+	                // 측정 중 압력 해제 → IDLE 복귀 (완전 초기화!)
 	                UART_Send("PRESSURE_LOST_IN_MEASURING");
 	                retry_count = 0;                        // 재시도 카운터도 리셋
 	                is_drunk_detected = 0;                  // 음주 플래그 리셋
-	                Change_State(STATE_IDLE);               // ⭐ IDLE 복귀
+	                Change_State(STATE_IDLE);               // IDLE 복귀
 	            } else {
 	                // 정상 측정 완료 → 결과 대기
 	                is_drunk_detected = (result == 1) ? 1 : 0;
@@ -371,7 +371,7 @@ int main(void)
 	            break;
 
 	        case STATE_PASS:
-	            // 🟢 통과: Engine LED ON 유지
+	            // 통과: Engine LED ON 유지
 	            HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_SET);
 	            Engine_ON();
 
@@ -401,7 +401,7 @@ int main(void)
 	            break;
 
 	        case STATE_FAIL_DRUNK:
-	            // 🔴 음주 차단
+	            // 음주 차단
 	            HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_SET);
 
 	            // 부저 1회만 (진입 직후)
