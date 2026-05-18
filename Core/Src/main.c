@@ -349,12 +349,19 @@ int main(void)
 	            break;
 	        }
 
+            case STATE_WAIT_RESULT:
+
+
 	        case STATE_WAIT_RESULT:
 	            // RPi 판정 대기 (Yellow 천천히 깜빡)
 	            if ((elapsed / 300) % 2 == 0) {
 	                HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_SET);
-	            } else {
+                    HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_SET);
+                    HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_SET);
+	            } else {        
 	                HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_RESET);
+                    HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_RESET);
+                    HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_RESET);
 	            }
 
 	            if (elapsed >= DEMO_RESPONSE_TIME) {
