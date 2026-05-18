@@ -349,9 +349,6 @@ int main(void)
 	            break;
 	        }
 
-            case STATE_WAIT_RESULT:
-
-
 	        case STATE_WAIT_RESULT:
 	            // RPi 판정 대기 (Yellow 천천히 깜빡)
 	            if ((elapsed / 300) % 2 == 0) {

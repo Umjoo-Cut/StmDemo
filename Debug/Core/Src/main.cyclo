@@ -8,6 +8,6 @@
 ../Core/Src/main.c:206:6:UART_Send	1
 ../Core/Src/main.c:219:6:Change_State	1
 ../Core/Src/main.c:231:5:main	29
-../Core/Src/main.c:441:6:SystemClock_Config	3
-../Core/Src/main.c:487:13:MX_NVIC_Init	1
-../Core/Src/main.c:502:6:Error_Handler	1
+../Core/Src/main.c:445:6:SystemClock_Config	3
+../Core/Src/main.c:491:13:MX_NVIC_Init	1
+../Core/Src/main.c:506:6:Error_Handler	1
