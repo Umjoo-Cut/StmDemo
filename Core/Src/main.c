@@ -63,12 +63,12 @@
 // 상태 머신
 typedef enum {
     STATE_IDLE,           // 대기
-    STATE_ARMED,          // 시동 ON, RPi 준비 대기
-    STATE_WAIT_DETECT,    // 운전자 감지 버튼 대기
+    STATE_WAIT_SEAT,          // 시동 ON, RPi 준비 대기
+    STATE_WAIT_BLOW,    // 운전자 감지 버튼 대기
     STATE_MEASURING,      // MQ-3 측정 중
     STATE_WAIT_RESULT,    // RPi 판정 대기
     STATE_PASS,           // 통과
-    STATE_FAIL_DRUNK      // 음주 차단
+    STATE_FAIL      // 음주 차단
 } DMS_State_t;
 
 DMS_State_t current_state = STATE_IDLE;
@@ -95,20 +95,59 @@ static void MX_NVIC_Init(void);
 /* USER CODE BEGIN 0 */
 /* USER CODE BEGIN 0 */
 
+
+// Green LED ON
+void Green_LED_On(void)
+{
+    HAL_GPIO_WritePin(Green_LED_GPIO_Port,
+                      Green_LED_Pin,
+                      GPIO_PIN_SET);
+}
+
+// Yellow LED ON
+void Yellow_LED_On(void)
+{
+    HAL_GPIO_WritePin(Yellow_LED_GPIO_Port,
+                      Yellow_LED_Pin,
+                      GPIO_PIN_SET);
+}
+
+// Red LED ON
+void Red_LED_On(void)
+{
+    HAL_GPIO_WritePin(Red_LED_GPIO_Port,
+                      Red_LED_Pin,
+                      GPIO_PIN_SET);
+}
+
+// Engine ON
+void Engine_ON(void)
+{
+    HAL_GPIO_WritePin(Engine_LED_GPIO_Port,
+                      Engine_LED_Pin,
+                      GPIO_PIN_SET);
+}
+
+// Engine OFF
+void Engine_OFF(void)
+{
+    HAL_GPIO_WritePin(Engine_LED_GPIO_Port,
+                      Engine_LED_Pin,
+                      GPIO_PIN_RESET);
+}
+
 // LED 제어
-void LED_AllOff(void) {
-    HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_RESET);
+void LED_All_On(void) {
+    Green_LED_On();
+    Yellow_LED_On();
+    Red_LED_On();
 }
 
-// 엔진 LED 제어
-void Engine_ON(void) {
-    HAL_GPIO_WritePin(Engine_LED_GPIO_Port, Engine_LED_Pin, GPIO_PIN_SET);
-}
-
-void Engine_OFF(void) {
-    HAL_GPIO_WritePin(Engine_LED_GPIO_Port, Engine_LED_Pin, GPIO_PIN_RESET);
+void LED_All_Off(void)
+{
+    Green_LED_Off();
+    Yellow_LED_Off();
+    Red_LED_Off();
 }
 
 // MQ-3 측정
@@ -276,24 +315,24 @@ int main(void)
 	            if (start_btn_pressed) {
 	                retry_count = 0;
 	                UART_Send("REQ:START");
-	                Change_State(STATE_ARMED);
+	                Change_State(STATE_WAIT_SEAT);
 	            }
 	            break;
 
-	        case STATE_ARMED:
-	            HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_SET);
+	        case STATE_WAIT_SEAT:
+	            Yellow_LED_On();
 
 	            if (elapsed >= DEMO_RESPONSE_TIME) {
-	                Change_State(STATE_WAIT_DETECT);
+	                Change_State(STATE_WAIT_BLOW);
 	            }
 	            break;
 
-	        case STATE_WAIT_DETECT:
+	        case STATE_WAIT_BLOW:
 	            // 운전자 감지 버튼 대기 (Yellow 깜빡)
 	            if ((elapsed / 500) % 2 == 0) {
-	                HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_SET);
+	                Yellow_LED_On();
 	            } else {
-	                HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_RESET);
+	                Yellow_LED_Off();
 	            }
 
 	            if (detect_btn_pressed) {
@@ -305,7 +344,7 @@ int main(void)
 	        case STATE_MEASURING:
 	        {
 	            // MQ-3 측정 (압력 감시 + delta 판정)
-	            HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_SET);
+	            Yellow_LED_On();
 
 	            uint8_t result = Measure_MQ3_With_Pressure();
 
@@ -329,20 +368,16 @@ int main(void)
 	        }
 
 	        case STATE_WAIT_RESULT:
-	            // RPi 판정 대기 (Yellow 천천히 깜빡)
+	            // RPi 판정 대기
 	            if ((elapsed / 300) % 2 == 0) {
-	                HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_SET);
-                    HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_SET);
-                    HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_SET);
+	                All_LED_On();
 	            } else {        
-	                HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_RESET);
-                    HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_RESET);
-                    HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_RESET);
+	                All_LED_Off();
 	            }
 
 	            if (elapsed >= DEMO_RESPONSE_TIME) {
 	                if (is_drunk_detected) {
-	                    Change_State(STATE_FAIL_DRUNK);
+	                    Change_State(STATE_FAIL);
 	                } else {
 	                    Change_State(STATE_PASS);
 	                }
@@ -351,7 +386,7 @@ int main(void)
 
 	        case STATE_PASS:
 	            // 통과: Engine LED ON 유지
-	            HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_SET);
+	            Green_LED_On();
 	            Engine_ON();
 
 	            // 운전 중 압력 감시 (운전자 이탈 감지)
@@ -365,7 +400,7 @@ int main(void)
 	                if (HAL_GetTick() - pressure_lost_start >= PRESSURE_LOST_TIMEOUT) {
 	                    UART_Send("PRESSURE_LOST");
 	                    pressure_lost_start = 0;
-	                    Change_State(STATE_WAIT_DETECT);   // 재시도
+	                    Change_State(STATE_WAIT_BLOW);   // 재시도
 	                }
 	            } else {
 	                // 압력 다시 잡힘 → 카운터 리셋
@@ -379,9 +414,9 @@ int main(void)
 	            }
 	            break;
 
-	        case STATE_FAIL_DRUNK:
+	        case STATE_FAIL:
 	            // 음주 차단
-	            HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_SET);
+	            Red_LED_On();
 
 	            // 부저 1회만 (진입 직후)
 	            if (elapsed < 50) {
@@ -404,7 +439,7 @@ int main(void)
 	                retry_count++;
 
 	                if (retry_count < MAX_RETRY) {
-	                    Change_State(STATE_WAIT_DETECT);
+	                    Change_State(STATE_WAIT_BLOW);
 	                } else {
 	                    Change_State(STATE_IDLE);
 	                }
