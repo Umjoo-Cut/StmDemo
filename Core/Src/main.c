@@ -47,14 +47,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-// =========================
 // 모드 전환
-// =========================
 #define UART_ENABLED        0      // 0=데모, 1=실제 UART
 
-// =========================
 // 임계값 / 타이밍
-// =========================
 #define DELTA_THRESHOLD     200    // 음주 판정 차이값 (첫 측정 대비)
 #define MQ3_SAMPLE_COUNT    5      // 측정 횟수
 #define MQ3_SAMPLE_INTERVAL 1000   // 측정 간격 (ms)
@@ -64,9 +60,7 @@
 #define PRESSURE_LOST_TIMEOUT 10000  // 압력 해제 타임아웃 (30초 : 테스트 10초)
 #define FAIL_BLINK_TIME     5000  // FAIL 시 Engine LED 깜빡 시간 (10초)
 
-// =========================
 // 상태 머신
-// =========================
 typedef enum {
     STATE_IDLE,           // 대기
     STATE_ARMED,          // 시동 ON, RPi 준비 대기
@@ -100,18 +94,15 @@ static void MX_NVIC_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /* USER CODE BEGIN 0 */
-// =========================
+
 // LED 제어
-// =========================
 void LED_AllOff(void) {
     HAL_GPIO_WritePin(Green_LED_GPIO_Port, Green_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(Yellow_LED_GPIO_Port, Yellow_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_RESET);
 }
 
-// =========================
 // 엔진 LED 제어
-// =========================
 void Engine_ON(void) {
     HAL_GPIO_WritePin(Engine_LED_GPIO_Port, Engine_LED_Pin, GPIO_PIN_SET);
 }
@@ -120,9 +111,7 @@ void Engine_OFF(void) {
     HAL_GPIO_WritePin(Engine_LED_GPIO_Port, Engine_LED_Pin, GPIO_PIN_RESET);
 }
 
-// =========================
 // MQ-3 측정
-// =========================
 uint32_t Read_MQ3(void) {
     HAL_ADC_Start(&hadc1);
     HAL_ADC_PollForConversion(&hadc1, 100);
@@ -131,22 +120,18 @@ uint32_t Read_MQ3(void) {
     return value;
 }
 
-// =========================
 // 압력(버튼) 상태 읽기
 // Pull-up이라 누르면 0, 떼면 1
 // 압력 유지 = 0 반환
-// =========================
 uint8_t Is_Pressure_Active(void) {
     return (HAL_GPIO_ReadPin(DETECT_BTN_GPIO_Port, DETECT_BTN_Pin) == 0);
 }
 
-// =========================
 // MQ-3 측정 (압력 감시 + delta 판정)
 // 반환값:
 //   0 = 정상 (모든 delta < 200)
 //   1 = 음주 감지 (delta >= 200 한 번이라도)
 //   2 = 측정 중 압력 해제 (30초 이상)
-// =========================
 uint8_t Measure_MQ3_With_Pressure(void) {
     // 첫 측정 전에도 압력 확인
     if (!Is_Pressure_Active()) {
@@ -188,9 +173,7 @@ uint8_t Measure_MQ3_With_Pressure(void) {
     return drunk_flag ? 1 : 0;
 }
 
-// =========================
 // 부저 패턴
-// =========================
 void Buzzer_Alert(void) {
     for (int i = 0; i < 5; i++) {
         HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -200,9 +183,7 @@ void Buzzer_Alert(void) {
     }
 }
 
-// =========================
 // UART 송신
-// =========================
 void UART_Send(const char* msg) {
 #if UART_ENABLED
     char buffer[64];
@@ -213,9 +194,7 @@ void UART_Send(const char* msg) {
 #endif
 }
 
-// =========================
 // 상태 전환
-// =========================
 void Change_State(DMS_State_t new_state) {
     current_state = new_state;
     state_enter_time = HAL_GetTick();
